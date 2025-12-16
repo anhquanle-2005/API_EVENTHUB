@@ -1,0 +1,23 @@
+{
+  "name": "api_eventhub",
+  "version": "1.0.0",
+  "description": "EventHub",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "EventHub",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "mssql": "^12.0.0",
+    "nodemon": "^3.1.10"
+  }
+}
