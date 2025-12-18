@@ -1,11 +1,10 @@
 const sql = require('mssql');
 const config = {
-    user: 'sa',
-    password: '123456',
-    database: 'EVENTHUB',
-    server: 'HOAINAM',
+    user: 'bap_SQLLogin_1',
+    password: 'eventhub123456',
+    database: 'EVENHUB',
+    server: 'EVENHUB.mssql.somee.com',
     options: {
-        instanceName: 'SQL2022',
         encrypt: false,
         trustServerCertificate: true
     }

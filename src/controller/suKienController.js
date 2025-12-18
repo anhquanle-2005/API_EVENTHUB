@@ -12,8 +12,8 @@ class suKienController{
     }
     async getSKSapToi(req, res){
         try {
-            const getsksaptoi = await sk.getSKSapToi();
-            res.json({getsksaptoi})
+            const getSK = await sk.getSKSapToi();
+            res.json({getSK})
         } catch (err) {
              console.error(err);
             res.status(500).json({error: 'Lỗi server'});
