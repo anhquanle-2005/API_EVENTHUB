@@ -1,15 +1,4 @@
 const sql = require('mssql');
-// const config = {
-//     user: 'sa',
-//     password: '12345',
-//     database: 'EVENTHUB',
-//     server: 'DESKTOP-OAMTM76',
-//     options: {
-//         // instanceName: 'SQL2022',
-//         encrypt: false,
-//         trustServerCertificate: true
-//     }
-// };
 const config = {
     user: 'bap_SQLLogin_1',  // Tên đăng nhập lấy từ ảnh Somee
     password: 'eventhub123456', // Mật khẩu bạn đã copy ở bước trước
@@ -19,7 +8,9 @@ const config = {
     options: {
         encrypt: false,              
         trustServerCertificate: true // Bắt buộc để true với các host free như Somee
-    }
+    },
+    connectionTimeout: 30000, // 30 giây
+    requestTimeout: 30000
 };
 async function connectDB() {
     try {

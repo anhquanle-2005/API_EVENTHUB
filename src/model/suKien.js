@@ -81,5 +81,18 @@ async function getSKSapToi() {
         console.error('Lỗi query:', err)
     }
 }
+async function dangKySuKien(data) {
+    try {
+        const {MaTK, MaSK} = data;
+        
+        let pool = await connectDB();
+        await pool.request()
+                    .input('MaTK',sql.Int,MaTK)
+                    .input('MaSK',sql.Int,MaSK)
+                    .query(`insert into ThamGiaSuKien(MaTK, MaSK) VALUES (@MaTK, @MaSK);`);
+    } catch (error) {
+        console.error('Lỗi query: ',error);
+    }
+}
 
-module.exports ={getSK, getSKSapToi};
+module.exports ={getSK, getSKSapToi,dangKySuKien};

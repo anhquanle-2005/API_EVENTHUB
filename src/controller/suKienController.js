@@ -19,5 +19,15 @@ class suKienController{
             res.status(500).json({error: 'Lỗi server'});
         }
     }
+    async dangKySuKien(req, res){
+        try {
+            const data = req.body;
+            await sk.dangKySuKien(data);
+            res.status(200).json({message: 'Luuw thành công'});
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({error: 'Lỗi server'});
+        }
+    }
 }
 module.exports = new suKienController();
