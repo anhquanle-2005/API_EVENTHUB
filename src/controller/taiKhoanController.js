@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
 const tk = require("../model/taiKhoan");
+const nodemailer = require("nodemailer");
 const otpStore = require("../service/otpStore");
 
 const mailer = nodemailer.createTransport({
