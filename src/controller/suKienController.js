@@ -29,5 +29,15 @@ class suKienController{
             res.status(500).json({error: 'Lỗi server'});
         }
     }
+    async timSuKien(req, res){
+        try {
+            const data = req.body;
+            const sukiencantim = await sk.timSuKien(data);
+            res.json({sukiencantim});
+        } catch (error) {
+            console.error('Lỗi server: ',error);
+            res.status(500).json({error: 'Lỗi server'});
+        }
+    }
 }
 module.exports = new suKienController();

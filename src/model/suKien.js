@@ -94,5 +94,20 @@ async function dangKySuKien(data) {
         console.error('Lỗi query: ',error);
     }
 }
-
-module.exports ={getSK, getSKSapToi,dangKySuKien};
+async function timSuKien(data) 
+{
+    try {
+        const {MaTK, MaSK} = data;
+        let pool = await connectDB();
+        let result = await pool.request()
+                                .input('MaTK',sql.Int,MaTK)
+                                .input('MaSK',sql.Int,MaSK)
+                                .query(`Select SK.*
+                                        from SuKien SK, ThamGiaSuKien TG
+                                        where SK.MaSk = TG.MaSK and TG.MaSK = @MaSK and TG.MaTK = @MaTK`);
+        return result.recordset;
+    } catch (error) {
+        console.error('Lỗi query: ',error);
+    }    
+}
+module.exports ={getSK, getSKSapToi,dangKySuKien,timSuKien};
