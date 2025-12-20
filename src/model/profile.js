@@ -66,5 +66,21 @@ class Profile {
             throw error;
         }
     }
+    async updateUserAvatar(userId, newAvatarUrl){
+        try {
+            const poolConnection = await connectDB();
+            await poolConnection.request()
+            .input('UserId',sql.Int,userId)
+            .input('AvatarUrl',sql.NVarChar,newAvatarUrl)
+            .query('UPDATE TaiKhoan SET AVT = @AvatarUrl WHERE MaTK = @UserId');
+            const result = await poolConnection.request()
+            .input('UserId',sql.Int,userId)
+            .query('SELECT MaTK, MaSV, HoTen, Khoa, Lop, AVT, Email, VaiTro, DiemTichLuy FROM TaiKhoan WHERE MaTK = @UserId');    
+            return result.recordset[0];
+        } catch (err) {
+            console.error("Lỗi database trong updateUserAvatar:", err);
+            throw err;
+        }
+    }
 }
 module.exports = new  Profile();
