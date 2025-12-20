@@ -98,16 +98,48 @@ async function timSuKien(data)
 {
     try {
         const {MaTK, MaSK} = data;
+        console.log(data);
         let pool = await connectDB();
         let result = await pool.request()
                                 .input('MaTK',sql.Int,MaTK)
                                 .input('MaSK',sql.Int,MaSK)
-                                .query(`Select SK.*
+                                .query(`Select SK.MaSK,
+                                                SK.TenSK,
+                                                SK.Poster,
+                                                SK.DiaDiem,
+                                                SK.CoSo,
+                                                SK.SoLuongGioiHan,
+                                                SK.SoLuongDaDangKy,
+                                                SK.DiemCong,
+                                                SK.MoTa,
+                                                SK.TrangThai,
+                                                -- QUAN TRỌNG: Format ngày giờ ra chuỗi chuẩn (yyyy-MM-dd HH:mm:ss)
+                                                -- Để Node.js/Android hiển thị đúng giờ Việt Nam, không bị lệch múi giờ
+                                                FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
+                                                FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
                                         from SuKien SK, ThamGiaSuKien TG
-                                        where SK.MaSk = TG.MaSK and TG.MaSK = @MaSK and TG.MaTK = @MaTK`);
+                                        where SK.MaSk = TG.MaSK and TG.MaSK = @MaSK and TG.MaTK = @MaTK and TrangThaiMinhChung = 0`);
+        console.log(result.recordset);       
         return result.recordset;
     } catch (error) {
         console.error('Lỗi query: ',error);
     }    
 }
-module.exports ={getSK, getSKSapToi,dangKySuKien,timSuKien};
+async function uploadMinhChung(id, data) {
+    try {
+        const {MaSK, AnhMinhChung} = data;
+        let pool = await connectDB();
+        await pool.request()
+                    .input('id',sql.Int,id)
+                    .input('mask',sql.Int,MaSK)
+                    .input('anh',sql.NVarChar,AnhMinhChung)
+                    .query(`update ThamGiaSuKien 
+                        set AnhMinhChung = @anh, 
+                            ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0))
+                        where MaTK = @id and MaSK = @mask`);
+    } catch (error) {
+         console.error('Lỗi query: ',error);
+    }
+    
+}
+module.exports ={getSK, getSKSapToi,dangKySuKien,timSuKien,uploadMinhChung};
