@@ -1,9 +1,9 @@
 const sql = require('mssql');
 const config = {
     user: 'bap_SQLLogin_1',  // Tên đăng nhập lấy từ ảnh Somee
-    password: 'eventhub123456', // Mật khẩu bạn đã copy ở bước trước
-    database: 'EVENHUB',
-    server: 'EVENHUB.mssql.somee.com', // Địa chỉ server của Somee
+    password: 'evenhub123', 
+    database: 'EVENTHUB',
+    server: 'EVENTHUB.mssql.somee.com', // Địa chỉ server của Somee
     port: 1433, // Cổng mặc định của SQL Server (nên thêm vào cho chắc)
     options: {
         encrypt: false,              
