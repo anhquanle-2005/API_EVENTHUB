@@ -4,6 +4,8 @@ const suKienController = require('../controller/suKienController');
 Router.get('/saptoi',suKienController.getSKSapToi);
 Router.post('/timsukien',suKienController.timSuKien);
 Router.put('/uploadminhchung/:id',suKienController.uploadMinhChung);
+Router.get('/admin', suKienController.adminList);
 Router.get('/', suKienController.index);
 Router.post('/',suKienController.dangKySuKien);
+Router.get('/thamgia/:maSK', suKienController.participants);
 module.exports = Router;
