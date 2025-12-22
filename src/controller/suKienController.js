@@ -10,7 +10,7 @@ class suKienController{
             res.status(500).json({error: 'L??-i server'});
         }
     }
-    async getSKSapToi(req, res){
+    async getSKSapToi(_req, res){
         try {
             const getSK = await sk.getSKSapToi();
             res.json({getSK})
@@ -50,7 +50,7 @@ class suKienController{
         try {
             const data = req.body;
             await sk.dangKySuKien(data);
-            res.status(200).json({message: 'L??u thA?nh cA'ng'});
+            res.status(200).json({message: "Lưu thành công"});
         } catch (error) {
             console.error(error);
             res.status(500).json({error: 'L??-i server'});
@@ -72,7 +72,7 @@ class suKienController{
             const id = req.params.id;
             const data = req.body;
             await sk.uploadMinhChung(id,data);
-            res.status(200).json({message: 'L??u thA?nh cA'ng'});
+            res.status(200).json({message: "Lưu thành công"});
         } catch (error) {
             console.error(error);
             res.status(500).json({error: 'L??-i server'});
