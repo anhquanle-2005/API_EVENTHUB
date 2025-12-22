@@ -231,10 +231,12 @@ async function getParticipants(maSK) {
                     TG.AnhMinhChung,
                     TG.ThoiGianCheckIn,
                     TG.DiaDiemMinhChung,
+                    ISNULL(TG.LyDoTuChoi, '') AS LyDoTuChoi,
                     SK.SoLuongGioiHan,
                     SK.SoLuongDaDangKy,
                     SK.TenSK,
                     SK.TrangThai,
+                    SK.DiaDiem AS DiaDiemSK,
                     FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                     FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
                 FROM ThamGiaSuKien TG
@@ -257,5 +259,28 @@ module.exports = {
     timSuKien,
     uploadMinhChung,
     getAllForAdmin,
-    getParticipants
+    getParticipants,
+    updateParticipantStatus
 };
+
+// Function declaration is hoisted; placed here to avoid patch conflicts.
+async function updateParticipantStatus(maSK, maTK, trangThai, lyDo) {
+    try {
+        let pool = await connectDB();
+        await pool.request()
+            .input('maSK', sql.Int, maSK)
+            .input('maTK', sql.Int, maTK)
+            .input('trangThai', sql.Int, trangThai)
+            .input('lyDo', sql.NVarChar, lyDo || null)
+            .query(`
+                UPDATE ThamGiaSuKien
+                SET TrangThaiMinhChung = @trangThai,
+                    LyDoTuChoi = CASE WHEN @trangThai = 3 THEN @lyDo ELSE NULL END
+                WHERE MaSK = @maSK AND MaTK = @maTK;
+            `);
+        return true;
+    } catch (error) {
+        console.error('L Ż-i query updateParticipantStatus:', error);
+        return false;
+    }
+}

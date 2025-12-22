@@ -8,4 +8,5 @@ Router.get('/admin', suKienController.adminList);
 Router.get('/', suKienController.index);
 Router.post('/',suKienController.dangKySuKien);
 Router.get('/thamgia/:maSK', suKienController.participants);
+Router.put('/thamgia/:maSK/:maTK', suKienController.updateParticipantStatus);
 module.exports = Router;
