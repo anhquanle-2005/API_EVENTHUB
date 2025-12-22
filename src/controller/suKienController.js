@@ -51,5 +51,27 @@ class suKienController{
             res.status(500).json({error: 'Lỗi server'});
         }
     }
+    async createSuKien(req, res) {
+    try {
+        const data = req.body;
+        
+        // Kiểm tra file ảnh poster (tương tự logic updateAvatar bạn đã xem)
+        if (!req.file) {
+            return res.status(400).json({ error: 'Vui lòng upload ảnh poster' });
+        }
+        
+        // Lấy URL ảnh từ Cloudinary
+        data.Poster = req.file.path;
+
+        // Gọi hàm từ model để lưu vào Database
+        await sk.createSuKien(data);
+        
+        res.status(201).json({ message: 'Tạo sự kiện thành công!' });
+    } catch (error) {
+        console.error('Lỗi trong controller createSuKien:', error);
+        res.status(500).json({ error: 'Lỗi server khi tạo sự kiện' });
+    }
 }
+}
+
 module.exports = new suKienController();

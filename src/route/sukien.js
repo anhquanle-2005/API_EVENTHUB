@@ -1,9 +1,12 @@
 const express = require('express');
 const Router = express.Router();
 const suKienController = require('../controller/suKienController');
+const upload = require('../middleware/upload');
+
 Router.get('/saptoi',suKienController.getSKSapToi);
 Router.post('/timsukien',suKienController.timSuKien);
 Router.put('/uploadminhchung/:id',suKienController.uploadMinhChung);
 Router.get('/', suKienController.index);
 Router.post('/',suKienController.dangKySuKien);
+Router.post('/create', upload.single('poster'), suKienController.createSuKien);
 module.exports = Router;

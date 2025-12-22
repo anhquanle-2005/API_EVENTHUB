@@ -142,4 +142,30 @@ async function uploadMinhChung(id, data) {
     }
     
 }
-module.exports ={getSK, getSKSapToi,dangKySuKien,timSuKien,uploadMinhChung};
+async function createSuKien(data) {
+    try {
+        let pool = await connectDB();
+        const result = await pool.request()
+            .input('TenSK', sql.NVarChar, data.TenSK)
+            .input('Poster', sql.NVarChar, data.Poster)
+            .input('MoTa', sql.NVarChar, data.MoTa)
+            .input('LoaiSuKien', sql.NVarChar, data.LoaiSuKien)
+            .input('SoLuongGioiHan', sql.Int, data.SoLuongGioiHan)
+            .input('DiemCong', sql.Int, data.DiemCong)
+            .input('CoSo', sql.NVarChar, data.CoSo)
+            .input('DiaDiem', sql.NVarChar, data.DiaDiem)
+            .input('ThoiGianBatDau', sql.DateTime, data.ThoiGianBatDau)
+            .input('ThoiGianKetThuc', sql.DateTime, data.ThoiGianKetThuc)
+            .input('NguoiDang', sql.Int, data.NguoiDang)
+            .input('TrangThai', sql.NVarChar, 'Sắp diễn ra')
+            .input('SoLuongDaDangKy', sql.Int, 0)
+            .input('NgayTao', sql.DateTime, new Date())
+            .query(`INSERT INTO SuKien (TenSK, Poster, MoTa, LoaiSuKien, SoLuongGioiHan, DiemCong, CoSo, DiaDiem, ThoiGianBatDau, ThoiGianKetThuc, NguoiDang, TrangThai, SoLuongDaDangKy, NgayTao) 
+                    VALUES (@TenSK, @Poster, @MoTa, @LoaiSuKien, @SoLuongGioiHan, @DiemCong, @CoSo, @DiaDiem, @ThoiGianBatDau, @ThoiGianKetThuc, @NguoiDang, @TrangThai, @SoLuongDaDangKy, @NgayTao)`);
+        return result;
+    } catch (error) {
+        console.error('Lỗi khi thêm sự kiện vào DB:', error);
+        throw error;
+    }
+}
+module.exports ={getSK, getSKSapToi,dangKySuKien,timSuKien,uploadMinhChung, createSuKien};
