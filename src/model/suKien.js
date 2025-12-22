@@ -82,4 +82,68 @@ async function getSKSapToi() {
     }
 }
 
-module.exports ={getSK, getSKSapToi};
+async function searchSK(keyword, tags, time) {
+    try {
+        let pool = await connectDB();
+        let request = pool.request();
+        let query = `
+            SELECT SK.MaSK,
+                   SK.TenSK,
+                   SK.Poster,
+                   SK.DiaDiem,
+                   SK.CoSo,
+                   SK.SoLuongGioiHan,
+                   SK.SoLuongDaDangKy,
+                   SK.DiemCong,
+                   SK.MoTa,
+                   SK.TrangThai,
+                   FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
+                   FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
+            FROM SuKien SK
+            WHERE 1=1
+        `;
+
+        if (keyword) {
+            request.input('keyword', sql.NVarChar, `%${keyword}%`);
+            query += `
+                AND (SK.TenSK LIKE @keyword
+                     OR SK.MoTa LIKE @keyword
+                     OR SK.DiaDiem LIKE @keyword
+                     OR SK.CoSo LIKE @keyword)
+            `;
+        }
+
+        if (tags && tags.length > 0) {
+            let tagConditions = [];
+            tags.forEach((tag, index) => {
+                const paramName = `tag${index}`;
+                request.input(paramName, sql.NVarChar, `%${tag}%`);
+                tagConditions.push(`(SK.TenSK LIKE @${paramName} OR SK.MoTa LIKE @${paramName})`);
+            });
+            query += ` AND (${tagConditions.join(' OR ')})`;
+        }
+
+        if (time === 'today') {
+            query += `
+                AND CAST(SK.ThoiGianBatDau AS date) = CAST(GETDATE() AS date)
+            `;
+        } else if (time === 'tomorrow') {
+            query += `
+                AND CAST(SK.ThoiGianBatDau AS date) = DATEADD(day, 1, CAST(GETDATE() AS date))
+            `;
+        } else if (time === 'week') {
+            query += `
+                AND DATEDIFF(day, CAST(GETDATE() AS date), CAST(SK.ThoiGianBatDau AS date)) BETWEEN 0 AND 6
+            `;
+        }
+
+        query += ` ORDER BY SK.ThoiGianBatDau`;
+
+        let result = await request.query(query);
+        return result.recordset;
+    } catch (err) {
+        console.error('Loi query:', err);
+    }
+}
+
+module.exports ={getSK, getSKSapToi, searchSK};
