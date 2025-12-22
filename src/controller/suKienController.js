@@ -7,7 +7,7 @@ class suKienController{
             res.json({getSK});
         } catch (err) {
             console.error(err);
-            res.status(500).json({error: 'Lỗi server'});
+            res.status(500).json({error: 'L??-i server'});
         }
     }
     async getSKSapToi(req, res){
@@ -16,7 +16,7 @@ class suKienController{
             res.json({getSK})
         } catch (err) {
              console.error(err);
-            res.status(500).json({error: 'Lỗi server'});
+            res.status(500).json({error: 'L??-i server'});
         }
     }
     async search(req, res){
@@ -43,7 +43,39 @@ class suKienController{
             res.json({getSK});
         } catch (err) {
             console.error(err);
-            res.status(500).json({error: 'L Ż-i server'});
+            res.status(500).json({error: 'L??-i server'});
+        }
+    }
+    async dangKySuKien(req, res){
+        try {
+            const data = req.body;
+            await sk.dangKySuKien(data);
+            res.status(200).json({message: 'L??u thA?nh cA'ng'});
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({error: 'L??-i server'});
+        }
+    }
+    async timSuKien(req, res){
+        try {
+            const data = req.body;
+            console.log(data);
+            const sukiencantim = await sk.timSuKien(data);
+            res.json({sukiencantim : sukiencantim[0]});
+        } catch (error) {
+            console.error('L??-i server: ',error);
+            res.status(500).json({error: 'L??-i server'});
+        }
+    }
+    async uploadMinhChung(req, res){
+        try {
+            const id = req.params.id;
+            const data = req.body;
+            await sk.uploadMinhChung(id,data);
+            res.status(200).json({message: 'L??u thA?nh cA'ng'});
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({error: 'L??-i server'});
         }
     }
 }
