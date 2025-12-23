@@ -44,7 +44,7 @@ async function getSK() {
                 G.AVT4
             FROM SuKien SK
             LEFT JOIN GroupedAVT G ON SK.MaSK = G.MaSK
-            WHERE SK.TrangThai = N'Sắp diễn ra'
+            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra'
               AND DATEDIFF(day, GETDATE(), SK.ThoiGianBatDau) BETWEEN 0 AND 4
             ORDER BY SK.MaSK;
         `);
@@ -76,7 +76,7 @@ async function getSKSapToi() {
                 FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                 FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
             FROM SuKien SK 
-            WHERE TrangThai = N'Sắp diễn ra';
+            WHERE TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra';
         `);
         return result.recordset;
     } catch (err) {
@@ -194,9 +194,9 @@ async function getAllForAdmin() {
                 FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc,
                 G.AVT1, G.AVT2, G.AVT3,
                 CASE 
-                    WHEN SK.TrangThai = N'Sắp diễn ra' THEN 'upcoming'
-                    WHEN SK.TrangThai = N'Đang diễn ra' THEN 'ongoing'
-                    WHEN SK.TrangThai = N'Đã diễn ra' THEN 'done'
+                    WHEN SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra' THEN 'upcoming'
+                    WHEN SK.TrangThai COLLATE Latin1_General_CI_AI = N'Dang dien ra' THEN 'ongoing'
+                    WHEN SK.TrangThai COLLATE Latin1_General_CI_AI = N'Da dien ra' THEN 'done'
                     ELSE 'ongoing'
                 END AS CalcStatus
             FROM SuKien SK
@@ -382,7 +382,7 @@ async function huyDangKySuKien(maTK, maSK) {
                 JOIN SuKien SK ON TG.MaSK = SK.MaSK
                 WHERE TG.MaTK = @MaTK 
                   AND TG.MaSK = @MaSK
-                  AND SK.TrangThai = N'Sắp diễn ra';
+                  AND SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra';
             `);
         return result.rowsAffected && result.rowsAffected[0] > 0;
     } catch (error) {
@@ -441,6 +441,7 @@ async function updateEvent(id, data) {
         return false;
     }
 }
+
 
 
 
