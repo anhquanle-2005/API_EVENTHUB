@@ -1,10 +1,14 @@
-﻿const { sql, connectDB } = require('../db/index');
+const { sql, connectDB } = require('../db/index');
+
+/* =========================================================
+   USER APIs
+========================================================= */
 
 // Lấy sự kiện sắp diễn ra (trong 4 ngày tới) kèm 4 avatar đầu tiên
 async function getSK() {
     try {
-        let pool = await connectDB();
-        let result = await pool.request().query(`
+        const pool = await connectDB();
+        const result = await pool.request().query(`
             WITH TopAVT AS (
                 SELECT 
                     CT.MaSK, 
@@ -59,8 +63,8 @@ async function getSK() {
 // Lấy tất cả sự kiện sắp diễn ra
 async function getSKSapToi() {
     try {
-        let pool = await connectDB();
-        let result = await pool.request().query(`
+        const pool = await connectDB();
+        const result = await pool.request().query(`
             SELECT 
                 SK.MaSK,
                 SK.TenSK,
@@ -76,7 +80,8 @@ async function getSKSapToi() {
                 FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                 FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
             FROM SuKien SK 
-            WHERE TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra';
+            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra'
+            ORDER BY SK.ThoiGianBatDau;
         `);
         return result.recordset;
     } catch (err) {
@@ -85,17 +90,96 @@ async function getSKSapToi() {
     }
 }
 
+/**
+ * Search sự kiện
+ * - keyword: string
+ * - tags: array hoặc string "a,b,c"
+ * - time: 'today' | 'tomorrow' | 'week' | ''
+ *
+ * (Giữ logic search từ file 1, nhưng làm sạch + ổn định hơn)
+ */
+async function searchSK(keyword, tags, time) {
+    try {
+        const pool = await connectDB();
+        const request = pool.request();
+
+        let query = `
+            SELECT 
+                SK.MaSK,
+                SK.TenSK,
+                SK.Poster,
+                SK.DiaDiem,
+                SK.LoaiSuKien,
+                SK.CoSo,
+                SK.SoLuongGioiHan,
+                SK.SoLuongDaDangKy,
+                SK.DiemCong,
+                SK.MoTa,
+                SK.TrangThai,
+                FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
+                FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
+            FROM SuKien SK
+            WHERE 1=1
+        `;
+
+        if (keyword) {
+            request.input('keyword', sql.NVarChar, `%${keyword}%`);
+            query += `
+                AND (
+                    SK.TenSK LIKE @keyword
+                    OR SK.MoTa LIKE @keyword
+                    OR SK.DiaDiem LIKE @keyword
+                    OR SK.CoSo LIKE @keyword
+                )
+            `;
+        }
+
+        // normalize tags
+        let tagArr = tags;
+        if (typeof tags === 'string') {
+            tagArr = tags.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (Array.isArray(tagArr) && tagArr.length > 0) {
+            const tagConditions = [];
+            tagArr.forEach((tag, index) => {
+                const paramName = `tag${index}`;
+                request.input(paramName, sql.NVarChar, `%${tag}%`);
+                tagConditions.push(`(SK.TenSK LIKE @${paramName} OR SK.MoTa LIKE @${paramName})`);
+            });
+            query += ` AND (${tagConditions.join(' OR ')})`;
+        }
+
+        if (time === 'today') {
+            query += ` AND CAST(SK.ThoiGianBatDau AS date) = CAST(GETDATE() AS date) `;
+        } else if (time === 'tomorrow') {
+            query += ` AND CAST(SK.ThoiGianBatDau AS date) = DATEADD(day, 1, CAST(GETDATE() AS date)) `;
+        } else if (time === 'week') {
+            query += ` AND DATEDIFF(day, CAST(GETDATE() AS date), CAST(SK.ThoiGianBatDau AS date)) BETWEEN 0 AND 6 `;
+        }
+
+        query += ` ORDER BY SK.ThoiGianBatDau;`;
+
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (err) {
+        console.error('Lỗi query searchSK:', err);
+        return [];
+    }
+}
+
 // Đăng ký sự kiện
 async function dangKySuKien(data) {
     try {
         const { MaTK, MaSK } = data;
-        let pool = await connectDB();
+        const pool = await connectDB();
         await pool.request()
             .input('MaTK', sql.Int, MaTK)
             .input('MaSK', sql.Int, MaSK)
             .query(`INSERT INTO ThamGiaSuKien(MaTK, MaSK) VALUES (@MaTK, @MaSK);`);
+        return true;
     } catch (error) {
-        console.error('Lỗi query dangKySuKien: ', error);
+        console.error('Lỗi query dangKySuKien:', error);
+        return false;
     }
 }
 
@@ -103,8 +187,8 @@ async function dangKySuKien(data) {
 async function timSuKien(data) {
     try {
         const { MaTK, MaSK } = data;
-        let pool = await connectDB();
-        let result = await pool.request()
+        const pool = await connectDB();
+        const result = await pool.request()
             .input('MaTK', sql.Int, MaTK)
             .input('MaSK', sql.Int, MaSK)
             .query(`
@@ -130,7 +214,7 @@ async function timSuKien(data) {
             `);
         return result.recordset;
     } catch (error) {
-        console.error('Lỗi query timSuKien: ', error);
+        console.error('Lỗi query timSuKien:', error);
         return [];
     }
 }
@@ -139,7 +223,7 @@ async function timSuKien(data) {
 async function uploadMinhChung(id, data) {
     try {
         const { MaSK, AnhMinhChung } = data;
-        let pool = await connectDB();
+        const pool = await connectDB();
         await pool.request()
             .input('id', sql.Int, id)
             .input('mask', sql.Int, MaSK)
@@ -150,16 +234,22 @@ async function uploadMinhChung(id, data) {
                     ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0))
                 WHERE MaTK = @id AND MaSK = @mask
             `);
+        return true;
     } catch (error) {
-        console.error('Lỗi query uploadMinhChung: ', error);
+        console.error('Lỗi query uploadMinhChung:', error);
+        return false;
     }
 }
 
-// Lấy danh sách sự kiện cho admin, nhóm theo trạng thái (dựa vào trường TrangThai)
+/* =========================================================
+   ADMIN APIs (từ file 2)
+========================================================= */
+
+// Lấy danh sách sự kiện cho admin, nhóm theo trạng thái
 async function getAllForAdmin() {
     try {
-        let pool = await connectDB();
-        let result = await pool.request().query(`
+        const pool = await connectDB();
+        const result = await pool.request().query(`
             WITH TopAVT AS (
                 SELECT 
                     CT.MaSK, 
@@ -220,8 +310,8 @@ async function getAllForAdmin() {
 // Danh sách sinh viên tham gia theo sự kiện
 async function getParticipants(maSK) {
     try {
-        let pool = await connectDB();
-        let result = await pool.request()
+        const pool = await connectDB();
+        const result = await pool.request()
             .input('maSK', sql.Int, maSK)
             .query(`
                 SELECT 
@@ -257,11 +347,58 @@ async function getParticipants(maSK) {
     }
 }
 
+// Cập nhật trạng thái minh chứng + cộng điểm
+async function updateParticipantStatus(maSK, maTK, trangThai, lyDo) {
+    try {
+        const pool = await connectDB();
+
+        const info = await pool.request()
+            .input('maSK', sql.Int, maSK)
+            .input('maTK', sql.Int, maTK)
+            .query(`
+                SELECT TOP 1 TG.DaCongDiem, TG.TrangThaiMinhChung
+                FROM ThamGiaSuKien TG
+                WHERE TG.MaSK = @maSK AND TG.MaTK = @maTK;
+            `);
+
+        if (!info.recordset || info.recordset.length === 0) return false;
+
+        const current = info.recordset[0];
+        const currentDaCong = Number(current.DaCongDiem) === 1 ? 1 : 0;
+
+        const status = Number(trangThai);
+        if (!Number.isFinite(status)) return false;
+
+        let newDaCong = currentDaCong;
+        if (status === 2) newDaCong = 1;
+        else if (status === 3 || status === 1 || status === 0) newDaCong = 0;
+
+        await pool.request()
+            .input('maSK', sql.Int, maSK)
+            .input('maTK', sql.Int, maTK)
+            .input('trangThai', sql.Int, status)
+            .input('lyDo', sql.NVarChar, lyDo || null)
+            .input('daCong', sql.Bit, newDaCong)
+            .query(`
+                UPDATE ThamGiaSuKien
+                SET TrangThaiMinhChung = @trangThai,
+                    DaCongDiem = @daCong,
+                    LyDoTuChoi = CASE WHEN @trangThai = 3 THEN @lyDo ELSE NULL END
+                WHERE MaSK = @maSK AND MaTK = @maTK;
+            `);
+
+        return true;
+    } catch (error) {
+        console.error('Lỗi query updateParticipantStatus:', error);
+        return false;
+    }
+}
+
 // Lấy tất cả sự kiện (mọi trạng thái) kèm avatar
 async function getAll() {
     try {
-        let pool = await connectDB();
-        let result = await pool.request().query(`
+        const pool = await connectDB();
+        const result = await pool.request().query(`
             WITH TopAVT AS (
                 SELECT 
                     CT.MaSK, 
@@ -310,70 +447,11 @@ async function getAll() {
     }
 }
 
-module.exports = {
-    getSK,
-    getSKSapToi,
-    dangKySuKien,
-    timSuKien,
-    uploadMinhChung,
-    getAllForAdmin,
-    getParticipants,
-    updateParticipantStatus,
-    getAll,
-    huyDangKySuKien,
-    updateEvent
-};
-
-// Function declaration is hoisted; placed here to avoid patch conflicts.
-async function updateParticipantStatus(maSK, maTK, trangThai, lyDo) {
-    try {
-        const pool = await connectDB();
-        const info = await pool.request()
-            .input('maSK', sql.Int, maSK)
-            .input('maTK', sql.Int, maTK)
-            .query(`
-                SELECT TOP 1 TG.DaCongDiem, TG.TrangThaiMinhChung
-                FROM ThamGiaSuKien TG
-                WHERE TG.MaSK = @maSK AND TG.MaTK = @maTK;
-            `);
-
-        if (!info.recordset || info.recordset.length === 0) return false;
-
-        const current = info.recordset[0];
-        const currentDaCong = Number(current.DaCongDiem) === 1 ? 1 : 0;
-        const status = Number(trangThai);
-        if (!Number.isFinite(status)) return false;
-
-        let newDaCong = currentDaCong;
-        if (status === 2) {
-            newDaCong = 1;
-        } else if (status === 3 || status === 1 || status === 0) {
-            newDaCong = 0;
-        }
-
-        await pool.request()
-            .input('maSK', sql.Int, maSK)
-            .input('maTK', sql.Int, maTK)
-            .input('trangThai', sql.Int, status)
-            .input('lyDo', sql.NVarChar, lyDo || null)
-            .input('daCong', sql.Bit, newDaCong)
-            .query(`
-                UPDATE ThamGiaSuKien
-                SET TrangThaiMinhChung = @trangThai,
-                    DaCongDiem = @daCong,
-                    LyDoTuChoi = CASE WHEN @trangThai = 3 THEN @lyDo ELSE NULL END
-                WHERE MaSK = @maSK AND MaTK = @maTK;
-            `);
-        return true;
-    } catch (error) {
-        console.error('Loi query updateParticipantStatus:', error);
-        return false;
-    }
-}
+// Hủy đăng ký sự kiện (chỉ cho phép khi sự kiện còn "Sắp diễn ra")
 async function huyDangKySuKien(maTK, maSK) {
     try {
-        let pool = await connectDB();
-        let result = await pool.request()
+        const pool = await connectDB();
+        const result = await pool.request()
             .input('MaTK', sql.Int, maTK)
             .input('MaSK', sql.Int, maSK)
             .query(`
@@ -386,11 +464,12 @@ async function huyDangKySuKien(maTK, maSK) {
             `);
         return result.rowsAffected && result.rowsAffected[0] > 0;
     } catch (error) {
-        console.error('Loi query huyDangKySuKien:', error);
+        console.error('Lỗi query huyDangKySuKien:', error);
         return false;
     }
 }
 
+// Update sự kiện
 async function updateEvent(id, data) {
     try {
         const {
@@ -406,14 +485,15 @@ async function updateEvent(id, data) {
             TrangThai,
             Poster
         } = data;
-        let pool = await connectDB();
-        let result = await pool.request()
+
+        const pool = await connectDB();
+        const result = await pool.request()
             .input('id', sql.Int, id)
             .input('TenSK', sql.NVarChar, TenSK || null)
             .input('MoTa', sql.NVarChar, MoTa || null)
             .input('LoaiSuKien', sql.NVarChar, LoaiSuKien || null)
-            .input('SoLuongGioiHan', sql.Int, SoLuongGioiHan || null)
-            .input('DiemCong', sql.Int, DiemCong || null)
+            .input('SoLuongGioiHan', sql.Int, SoLuongGioiHan ?? null)
+            .input('DiemCong', sql.Int, DiemCong ?? null)
             .input('CoSo', sql.NVarChar, CoSo || null)
             .input('DiaDiem', sql.NVarChar, DiaDiem || null)
             .input('ThoiGianBatDau', sql.NVarChar, ThoiGianBatDau || null)
@@ -435,15 +515,28 @@ async function updateEvent(id, data) {
                     TrangThai = COALESCE(@TrangThai, TrangThai)
                 WHERE MaSK = @id;
             `);
+
         return result.rowsAffected && result.rowsAffected[0] > 0;
     } catch (error) {
-        console.error('Loi query updateEvent:', error);
+        console.error('Lỗi query updateEvent:', error);
         return false;
     }
 }
 
+module.exports = {
+    // user
+    getSK,
+    getSKSapToi,
+    searchSK,
+    dangKySuKien,
+    timSuKien,
+    uploadMinhChung,
 
-
-
-
-
+    // admin
+    getAllForAdmin,
+    getParticipants,
+    updateParticipantStatus,
+    getAll,
+    huyDangKySuKien,
+    updateEvent
+};
