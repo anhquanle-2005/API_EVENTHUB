@@ -320,7 +320,8 @@ module.exports = {
     getParticipants,
     updateParticipantStatus,
     getAll,
-    huyDangKySuKien
+    huyDangKySuKien,
+    updateEvent
 };
 
 // Function declaration is hoisted; placed here to avoid patch conflicts.
@@ -362,6 +363,57 @@ async function huyDangKySuKien(maTK, maSK) {
         return result.rowsAffected && result.rowsAffected[0] > 0;
     } catch (error) {
         console.error('Loi query huyDangKySuKien:', error);
+        return false;
+    }
+}
+
+async function updateEvent(id, data) {
+    try {
+        const {
+            TenSK,
+            MoTa,
+            LoaiSuKien,
+            SoLuongGioiHan,
+            DiemCong,
+            CoSo,
+            DiaDiem,
+            ThoiGianBatDau,
+            ThoiGianKetThuc,
+            TrangThai,
+            Poster
+        } = data;
+        let pool = await connectDB();
+        let result = await pool.request()
+            .input('id', sql.Int, id)
+            .input('TenSK', sql.NVarChar, TenSK || null)
+            .input('MoTa', sql.NVarChar, MoTa || null)
+            .input('LoaiSuKien', sql.NVarChar, LoaiSuKien || null)
+            .input('SoLuongGioiHan', sql.Int, SoLuongGioiHan || null)
+            .input('DiemCong', sql.Int, DiemCong || null)
+            .input('CoSo', sql.NVarChar, CoSo || null)
+            .input('DiaDiem', sql.NVarChar, DiaDiem || null)
+            .input('ThoiGianBatDau', sql.NVarChar, ThoiGianBatDau || null)
+            .input('ThoiGianKetThuc', sql.NVarChar, ThoiGianKetThuc || null)
+            .input('TrangThai', sql.NVarChar, TrangThai || null)
+            .input('Poster', sql.NVarChar, Poster || null)
+            .query(`
+                UPDATE SuKien
+                SET TenSK = COALESCE(@TenSK, TenSK),
+                    Poster = COALESCE(@Poster, Poster),
+                    MoTa = COALESCE(@MoTa, MoTa),
+                    LoaiSuKien = COALESCE(@LoaiSuKien, LoaiSuKien),
+                    SoLuongGioiHan = COALESCE(@SoLuongGioiHan, SoLuongGioiHan),
+                    DiemCong = COALESCE(@DiemCong, DiemCong),
+                    CoSo = COALESCE(@CoSo, CoSo),
+                    DiaDiem = COALESCE(@DiaDiem, DiaDiem),
+                    ThoiGianBatDau = COALESCE(@ThoiGianBatDau, ThoiGianBatDau),
+                    ThoiGianKetThuc = COALESCE(@ThoiGianKetThuc, ThoiGianKetThuc),
+                    TrangThai = COALESCE(@TrangThai, TrangThai)
+                WHERE MaSK = @id;
+            `);
+        return result.rowsAffected && result.rowsAffected[0] > 0;
+    } catch (error) {
+        console.error('Loi query updateEvent:', error);
         return false;
     }
 }

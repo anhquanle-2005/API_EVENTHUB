@@ -8,6 +8,7 @@ Router.get('/admin', suKienController.adminList);
 Router.get('/all', suKienController.all);
 Router.get('/', suKienController.index);
 Router.post('/',suKienController.dangKySuKien);
+Router.put('/update/:id', suKienController.updateEvent);
 Router.get('/thamgia/:maSK', suKienController.participants);
 Router.put('/thamgia/:maSK/:maTK', suKienController.updateParticipantStatus);
 Router.delete('/thamgia/:maSK/:maTK', suKienController.cancelRegistration);

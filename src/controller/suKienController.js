@@ -115,6 +115,19 @@ class SuKienController {
             res.status(500).json({ error: 'Loi server' });
         }
     }
+
+    async updateEvent(req, res) {
+        try {
+            const id = parseInt(req.params.id, 10);
+            const data = req.body;
+            const ok = await sk.updateEvent(id, data);
+            if (ok) res.json({ success: true });
+            else res.status(400).json({ error: 'Cap nhat that bai' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
 }
 
 module.exports = new SuKienController();
