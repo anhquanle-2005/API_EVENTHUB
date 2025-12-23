@@ -138,17 +138,19 @@ async function timSuKien(data) {
 // Upload minh chứng
 async function uploadMinhChung(id, data) {
     try {
-        const { MaSK, AnhMinhChung } = data;
+        const { MaSK, AnhMinhChung, DiaDiemMinhChung} = data;
         let pool = await connectDB();
         await pool.request()
             .input('id', sql.Int, id)
             .input('mask', sql.Int, MaSK)
             .input('anh', sql.NVarChar, AnhMinhChung)
+            .input('diadiem',sql.NVarChar,DiaDiemMinhChung)
             .query(`
                 UPDATE ThamGiaSuKien 
                 SET AnhMinhChung = @anh, 
-                    ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0))
-                WHERE MaTK = @id AND MaSK = @mask
+                    ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0)),
+                    DiaDiemMinhChung = @diadiem
+                WHERE MaTK = @id AND MaSK = @mask 
             `);
     } catch (error) {
         console.error('Lỗi query uploadMinhChung: ', error);
@@ -361,14 +363,6 @@ async function huyDangKySuKien(maTK, maSK) {
                   AND SK.TrangThai = N'Sắp diễn ra';
             `);
         return result.rowsAffected && result.rowsAffected[0] > 0;
-                    .input('id',sql.Int,id)
-                    .input('mask',sql.Int,MaSK)
-                    .input('anh',sql.NVarChar,AnhMinhChung)
-                    .query(`update ThamGiaSuKien 
-                        set AnhMinhChung = @anh, 
-                            ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0)),
-                            TrangThaiMinhChung = 1
-                        where MaTK = @id and MaSK = @mask`);
     } catch (error) {
         console.error('Loi query huyDangKySuKien:', error);
         return false;
