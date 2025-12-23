@@ -1,54 +1,95 @@
 const sk = require('../model/suKien');
 
-class suKienController{
-    async index(req, res){
+class SuKienController {
+    async index(req, res) {
         try {
             const getSK = await sk.getSK();
-            res.json({getSK});
+            res.json({ getSK });
         } catch (err) {
             console.error(err);
-            res.status(500).json({error: 'Lỗi server'});
+            res.status(500).json({ error: 'Loi server' });
         }
     }
-    async getSKSapToi(req, res){
+
+    async getSKSapToi(req, res) {
         try {
             const getSK = await sk.getSKSapToi();
-            res.json({getSK})
+            res.json({ getSK });
         } catch (err) {
-             console.error(err);
-            res.status(500).json({error: 'Lỗi server'});
+            console.error(err);
+            res.status(500).json({ error: 'Loi server' });
         }
     }
-    async dangKySuKien(req, res){
+
+    async dangKySuKien(req, res) {
         try {
             const data = req.body;
             await sk.dangKySuKien(data);
-            res.status(200).json({message: 'Lưu thành công'});
+            res.status(200).json({ message: 'Luu thanh cong' });
         } catch (error) {
             console.error(error);
-            res.status(500).json({error: 'Lỗi server'});
+            res.status(500).json({ error: 'Loi server' });
         }
     }
-    async timSuKien(req, res){
+
+    async timSuKien(req, res) {
         try {
             const data = req.body;
-            console.log(data);
             const sukiencantim = await sk.timSuKien(data);
-            res.json({sukiencantim : sukiencantim[0]});
+            res.json({ sukiencantim: sukiencantim[0] });
         } catch (error) {
-            console.error('Lỗi server: ',error);
-            res.status(500).json({error: 'Lỗi server'});
+            console.error('Loi server: ', error);
+            res.status(500).json({ error: 'Loi server' });
         }
     }
-    async uploadMinhChung(req, res){
+
+    async uploadMinhChung(req, res) {
         try {
             const id = req.params.id;
             const data = req.body;
-            await sk.uploadMinhChung(id,data);
-            res.status(200).json({message: 'Lưu thành công'});
+            await sk.uploadMinhChung(id, data);
+            res.status(200).json({ message: 'Luu thanh cong' });
         } catch (error) {
             console.error(error);
-            res.status(500).json({error: 'Lỗi server'});
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
+
+    async adminList(req, res) {
+        try {
+            const data = await sk.getAllForAdmin();
+            res.json(data);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
+
+    async participants(req, res) {
+        try {
+            const maSK = req.params.maSK;
+            const data = await sk.getParticipants(maSK);
+            res.json({ participants: data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
+
+    async updateParticipantStatus(req, res) {
+        try {
+            const maSK = parseInt(req.params.maSK, 10);
+            const maTK = parseInt(req.params.maTK, 10);
+            const { trangThai, lyDo } = req.body;
+            const ok = await sk.updateParticipantStatus(maSK, maTK, trangThai, lyDo);
+            if (ok) {
+                res.json({ success: true });
+            } else {
+                res.status(500).json({ error: 'Cap nhat that bai' });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
         }
     }
     async createSuKien(req, res) {
