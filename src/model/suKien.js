@@ -1,4 +1,4 @@
-const { sql, connectDB } = require('../db/index');
+﻿const { sql, connectDB } = require('../db/index');
 
 // Lấy sự kiện sắp diễn ra (trong 4 ngày tới) kèm 4 avatar đầu tiên
 async function getSK() {
@@ -327,25 +327,49 @@ module.exports = {
 // Function declaration is hoisted; placed here to avoid patch conflicts.
 async function updateParticipantStatus(maSK, maTK, trangThai, lyDo) {
     try {
-        let pool = await connectDB();
+        const pool = await connectDB();
+        const info = await pool.request()
+            .input('maSK', sql.Int, maSK)
+            .input('maTK', sql.Int, maTK)
+            .query(`
+                SELECT TOP 1 TG.DaCongDiem, TG.TrangThaiMinhChung
+                FROM ThamGiaSuKien TG
+                WHERE TG.MaSK = @maSK AND TG.MaTK = @maTK;
+            `);
+
+        if (!info.recordset || info.recordset.length === 0) return false;
+
+        const current = info.recordset[0];
+        const currentDaCong = Number(current.DaCongDiem) === 1 ? 1 : 0;
+        const status = Number(trangThai);
+        if (!Number.isFinite(status)) return false;
+
+        let newDaCong = currentDaCong;
+        if (status === 2) {
+            newDaCong = 1;
+        } else if (status === 3 || status === 1 || status === 0) {
+            newDaCong = 0;
+        }
+
         await pool.request()
             .input('maSK', sql.Int, maSK)
             .input('maTK', sql.Int, maTK)
-            .input('trangThai', sql.Int, trangThai)
+            .input('trangThai', sql.Int, status)
             .input('lyDo', sql.NVarChar, lyDo || null)
+            .input('daCong', sql.Bit, newDaCong)
             .query(`
                 UPDATE ThamGiaSuKien
                 SET TrangThaiMinhChung = @trangThai,
+                    DaCongDiem = @daCong,
                     LyDoTuChoi = CASE WHEN @trangThai = 3 THEN @lyDo ELSE NULL END
                 WHERE MaSK = @maSK AND MaTK = @maTK;
             `);
         return true;
     } catch (error) {
-        console.error('L Ż-i query updateParticipantStatus:', error);
+        console.error('Loi query updateParticipantStatus:', error);
         return false;
     }
 }
-
 async function huyDangKySuKien(maTK, maSK) {
     try {
         let pool = await connectDB();
@@ -417,3 +441,8 @@ async function updateEvent(id, data) {
         return false;
     }
 }
+
+
+
+
+
