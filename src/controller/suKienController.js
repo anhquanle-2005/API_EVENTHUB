@@ -1,6 +1,6 @@
 const sk = require('../model/suKien');
 
-class SuKienController {
+class suKienController {
     async index(req, res) {
         try {
             const getSK = await sk.getSK();
@@ -86,6 +86,27 @@ class SuKienController {
                 res.json({ success: true });
             } else {
                 res.status(500).json({ error: 'Cap nhat that bai' });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
+    async updateSuKien(req, res) {
+        try {
+            const id = parseInt(req.params.id, 10);
+            if (!id) {
+                return res.status(400).json({ error: 'Invalid id' });
+            }
+            const data = req.body;
+            if (req.file) {
+                data.Poster = req.file.path;
+            }
+            const ok = await sk.updateSuKien(id, data);
+            if (ok) {
+                res.json({ success: true });
+            } else {
+                res.status(404).json({ error: 'Khong tim thay su kien' });
             }
         } catch (error) {
             console.error(error);
