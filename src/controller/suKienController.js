@@ -92,6 +92,29 @@ class SuKienController {
             res.status(500).json({ error: 'Loi server' });
         }
     }
+
+    async all(req, res) {
+        try {
+            const data = await sk.getAll();
+            res.json({ getSK: data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
+
+    async cancelRegistration(req, res) {
+        try {
+            const maSK = parseInt(req.params.maSK, 10);
+            const maTK = parseInt(req.params.maTK, 10);
+            const ok = await sk.huyDangKySuKien(maTK, maSK);
+            if (ok) res.json({ success: true });
+            else res.status(400).json({ error: 'Huy that bai' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Loi server' });
+        }
+    }
 }
 
 module.exports = new SuKienController();

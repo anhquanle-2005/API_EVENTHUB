@@ -29,6 +29,7 @@ async function getSK() {
                 SK.TenSK,
                 SK.Poster,
                 SK.DiaDiem,
+                SK.LoaiSuKien,
                 SK.CoSo,
                 SK.SoLuongGioiHan,
                 SK.SoLuongDaDangKy,
@@ -65,6 +66,7 @@ async function getSKSapToi() {
                 SK.TenSK,
                 SK.Poster,
                 SK.DiaDiem,
+                SK.LoaiSuKien,
                 SK.CoSo,
                 SK.SoLuongGioiHan,
                 SK.SoLuongDaDangKy,
@@ -111,6 +113,7 @@ async function timSuKien(data) {
                     SK.TenSK,
                     SK.Poster,
                     SK.DiaDiem,
+                    SK.LoaiSuKien,
                     SK.CoSo,
                     SK.SoLuongGioiHan,
                     SK.SoLuongDaDangKy,
@@ -180,6 +183,7 @@ async function getAllForAdmin() {
                 SK.TenSK,
                 SK.Poster,
                 SK.DiaDiem,
+                SK.LoaiSuKien,
                 SK.CoSo,
                 SK.SoLuongGioiHan,
                 SK.SoLuongDaDangKy,
@@ -236,6 +240,7 @@ async function getParticipants(maSK) {
                     SK.SoLuongDaDangKy,
                     SK.TenSK,
                     SK.TrangThai,
+                    SK.LoaiSuKien,
                     SK.DiaDiem AS DiaDiemSK,
                     FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                     FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
@@ -252,6 +257,59 @@ async function getParticipants(maSK) {
     }
 }
 
+// Lấy tất cả sự kiện (mọi trạng thái) kèm avatar
+async function getAll() {
+    try {
+        let pool = await connectDB();
+        let result = await pool.request().query(`
+            WITH TopAVT AS (
+                SELECT 
+                    CT.MaSK, 
+                    TK.AVT, 
+                    ROW_NUMBER() OVER (PARTITION BY CT.MaSK ORDER BY TK.MaTK) AS rn
+                FROM ThamGiaSuKien CT
+                JOIN TaiKhoan TK ON TK.MaTK = CT.MaTK
+            ),
+            GroupedAVT AS (
+                SELECT 
+                    MaSK,
+                    MAX(CASE WHEN rn = 1 THEN AVT END) AS AVT1,
+                    MAX(CASE WHEN rn = 2 THEN AVT END) AS AVT2,
+                    MAX(CASE WHEN rn = 3 THEN AVT END) AS AVT3,
+                    MAX(CASE WHEN rn = 4 THEN AVT END) AS AVT4
+                FROM TopAVT
+                WHERE rn <= 4
+                GROUP BY MaSK
+            )
+            SELECT 
+                SK.MaSK,
+                SK.TenSK,
+                SK.Poster,
+                SK.DiaDiem,
+                SK.LoaiSuKien,
+                SK.CoSo,
+                SK.SoLuongGioiHan,
+                SK.SoLuongDaDangKy,
+                SK.DiemCong,
+                SK.MoTa,
+                SK.TrangThai,
+                FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
+                FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc,
+                G.AVT1, 
+                G.AVT2, 
+                G.AVT3, 
+                G.AVT4
+            FROM SuKien SK
+            LEFT JOIN GroupedAVT G ON SK.MaSK = G.MaSK
+            ORDER BY SK.ThoiGianBatDau ASC;
+        `);
+        return result.recordset;
+    } catch (err) {
+        console.error('Lỗi query getAll:', err);
+        return [];
+    }
+}
+
 module.exports = {
     getSK,
     getSKSapToi,
@@ -260,7 +318,9 @@ module.exports = {
     uploadMinhChung,
     getAllForAdmin,
     getParticipants,
-    updateParticipantStatus
+    updateParticipantStatus,
+    getAll,
+    huyDangKySuKien
 };
 
 // Function declaration is hoisted; placed here to avoid patch conflicts.
@@ -281,6 +341,27 @@ async function updateParticipantStatus(maSK, maTK, trangThai, lyDo) {
         return true;
     } catch (error) {
         console.error('L Ż-i query updateParticipantStatus:', error);
+        return false;
+    }
+}
+
+async function huyDangKySuKien(maTK, maSK) {
+    try {
+        let pool = await connectDB();
+        let result = await pool.request()
+            .input('MaTK', sql.Int, maTK)
+            .input('MaSK', sql.Int, maSK)
+            .query(`
+                DELETE TG
+                FROM ThamGiaSuKien TG
+                JOIN SuKien SK ON TG.MaSK = SK.MaSK
+                WHERE TG.MaTK = @MaTK 
+                  AND TG.MaSK = @MaSK
+                  AND SK.TrangThai = N'Sắp diễn ra';
+            `);
+        return result.rowsAffected && result.rowsAffected[0] > 0;
+    } catch (error) {
+        console.error('Loi query huyDangKySuKien:', error);
         return false;
     }
 }
