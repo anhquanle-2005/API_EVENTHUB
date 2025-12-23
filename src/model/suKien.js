@@ -135,7 +135,8 @@ async function uploadMinhChung(id, data) {
                     .input('anh',sql.NVarChar,AnhMinhChung)
                     .query(`update ThamGiaSuKien 
                         set AnhMinhChung = @anh, 
-                            ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0))
+                            ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0)),
+                            TrangThaiMinhChung = 1
                         where MaTK = @id and MaSK = @mask`);
     } catch (error) {
          console.error('Lỗi query: ',error);
