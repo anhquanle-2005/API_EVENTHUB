@@ -37,5 +37,15 @@ async function updatePasswordByEmail(email, newPassword) {
         console.log('Loi query', error);
     }
 }
-
-module.exports = {Login, findByEmail, updatePasswordByEmail}
+async function diemtichluy(ma){
+    try {
+       let pool = await connectDB();
+       let result = await pool.request()
+                                .input('ma',sql.Int,ma)
+                                .query(`select DiemTichLuy from TaiKhoan where MaTK = @ma`);
+        return result.recordset;
+    } catch (error) {
+        console.error('Lỗi query: ',error);
+    }
+}
+module.exports = {Login, findByEmail, updatePasswordByEmail,diemtichluy}

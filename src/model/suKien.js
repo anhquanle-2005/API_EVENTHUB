@@ -80,7 +80,7 @@ async function getSKSapToi() {
                 FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                 FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
             FROM SuKien SK 
-            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra'
+            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sắp diễn ra'
             ORDER BY SK.ThoiGianBatDau;
         `);
         return result.recordset;
@@ -524,6 +524,23 @@ async function updateEvent(id, data) {
         return false;
     }
 }
+async function suKienDaThamGia(data) {
+    try {
+        const {MaTK, MaSK} = data;
+        let pool = await connectDB();
+        let result = await pool.request()
+                                .input('MaTK',sql.Int,MaTK)
+                                .input('MaSK',sql.Int,MaSK)
+                                .query(`select SK.TenSK, SK.Poster,SK.DiemCong, TG.TrangThaiMinhChung,TG.LyDoTuChoi, TG.AnhMinhChung ,TG.DaCongDiem,
+                                            FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau
+                                        from SuKien SK, ThamGiaSuKien TG
+                                        where SK.MaSK = TG.MaSK and TG.MaSK = @MaSK and TG.MaTK = @MaTK`);
+       
+        return result.recordset;
+    } catch (error) {
+         console.error('Lỗi query:', error);
+    }
+}
 
 module.exports = {
     // user
@@ -533,7 +550,7 @@ module.exports = {
     dangKySuKien,
     timSuKien,
     uploadMinhChung,
-
+    suKienDaThamGia,
     // admin
     getAllForAdmin,
     getParticipants,
