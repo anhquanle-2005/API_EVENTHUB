@@ -9,6 +9,7 @@ Router.get('/search', suKienController.search);
 Router.get('/saptoi', suKienController.getSKSapToi);
 Router.post('/timsukien', suKienController.timSuKien);
 Router.put('/uploadminhchung/:id', suKienController.uploadMinhChung);
+Router.post('/sukiendathamgia',suKienController.suKienDaThamGia);
 Router.post('/', suKienController.dangKySuKien);
 
 // ADMIN / MANAGEMENT (từ file 2)

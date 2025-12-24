@@ -122,5 +122,15 @@ class taiKhoanController {
       return res.status(500).json({ success: false, message: "Loi server" });
     }
   }
+  async diemtichluy (req, res){
+    try {
+      const ma = req.params.id;
+      const diem = await tk.diemtichluy(ma)
+      console.log(diem[0]);
+      res.json(diem[0]);
+    } catch (error) {
+      return res.status(500).json({ success: false, message: "Loi server" });
+    }
+  }
 }
 module.exports = new taiKhoanController();

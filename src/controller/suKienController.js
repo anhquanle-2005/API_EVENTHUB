@@ -14,7 +14,7 @@ class SuKienController {
         }
     }
 
-    async getSKSapToi(_req, res) {
+    async getSKSapToi(req, res) {
         try {
             const getSK = await sk.getSKSapToi();
             res.json({ getSK });
@@ -160,6 +160,17 @@ class SuKienController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Lỗi server' });
+        }
+    }
+    async suKienDaThamGia(req, res) {
+        try {
+            const data = req.body;
+            const trangThai = await sk.suKienDaThamGia(data);
+            console.log(trangThai[0]);
+            res.json({trangThai:trangThai[0]});
+        } catch (error) {
+            console.error("Lỗi server: ",error);
+            res.status(500).json({error: 'Lỗi server' })
         }
     }
 }

@@ -80,7 +80,7 @@ async function getSKSapToi() {
                 FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau,
                 FORMAT(SK.ThoiGianKetThuc, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianKetThuc
             FROM SuKien SK 
-            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sap dien ra'
+            WHERE SK.TrangThai COLLATE Latin1_General_CI_AI = N'Sắp diễn ra'
             ORDER BY SK.ThoiGianBatDau;
         `);
         return result.recordset;
@@ -222,17 +222,19 @@ async function timSuKien(data) {
 // Upload minh chứng
 async function uploadMinhChung(id, data) {
     try {
-        const { MaSK, AnhMinhChung } = data;
-        const pool = await connectDB();
+        const { MaSK, AnhMinhChung, DiaDiemMinhChung} = data;
+        let pool = await connectDB();
         await pool.request()
             .input('id', sql.Int, id)
             .input('mask', sql.Int, MaSK)
             .input('anh', sql.NVarChar, AnhMinhChung)
+            .input('diadiem',sql.NVarChar,DiaDiemMinhChung)
             .query(`
                 UPDATE ThamGiaSuKien 
                 SET AnhMinhChung = @anh, 
-                    ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0))
-                WHERE MaTK = @id AND MaSK = @mask
+                    ThoiGianCheckIn = CAST(DATEADD(HOUR, 7, GETUTCDATE()) AS DATETIME2(0)),
+                    DiaDiemMinhChung = @diadiem
+                WHERE MaTK = @id AND MaSK = @mask 
             `);
         return true;
     } catch (error) {
@@ -522,6 +524,23 @@ async function updateEvent(id, data) {
         return false;
     }
 }
+async function suKienDaThamGia(data) {
+    try {
+        const {MaTK, MaSK} = data;
+        let pool = await connectDB();
+        let result = await pool.request()
+                                .input('MaTK',sql.Int,MaTK)
+                                .input('MaSK',sql.Int,MaSK)
+                                .query(`select SK.TenSK, SK.Poster,SK.DiemCong, TG.TrangThaiMinhChung,TG.LyDoTuChoi, TG.AnhMinhChung ,TG.DaCongDiem,
+                                            FORMAT(SK.ThoiGianBatDau, 'yyyy-MM-dd HH:mm:ss') AS ThoiGianBatDau
+                                        from SuKien SK, ThamGiaSuKien TG
+                                        where SK.MaSK = TG.MaSK and TG.MaSK = @MaSK and TG.MaTK = @MaTK`);
+       
+        return result.recordset;
+    } catch (error) {
+         console.error('Lỗi query:', error);
+    }
+}
 
 module.exports = {
     // user
@@ -531,7 +550,7 @@ module.exports = {
     dangKySuKien,
     timSuKien,
     uploadMinhChung,
-
+    suKienDaThamGia,
     // admin
     getAllForAdmin,
     getParticipants,
