@@ -1,25 +1,23 @@
 const sql = require('mssql');
-
 const config = {
-    user: 'sa',                // Từ User ID=sa
-    password: 'Abc123456@',    // Từ Password=Abc123456@
-    database: 'EVENTHUB',      // Tên Database (giữ nguyên từ code cũ vì chuỗi kết nối của bạn thiếu phần này)
-    server: 'localhost',       // Từ Data Source=localhost
-    port: 14333,               // Quan trọng: Lấy từ số sau dấu phẩy của localhost,14333
+    user: 'bap_SQLLogin_1',  // Tên đăng nhập lấy từ ảnh Somee
+    password: 'evenhub123', 
+    database: 'EVENTHUB',
+    server: 'EVENTHUB.mssql.somee.com', // Địa chỉ server của Somee
+    port: 1433, // Cổng mặc định của SQL Server (nên thêm vào cho chắc)
     options: {
-        encrypt: true,              // Từ Encrypt=True
-        trustServerCertificate: true // Từ TrustServerCertificate=True
-    }
+        encrypt: false,              
+        trustServerCertificate: true // Bắt buộc để true với các host free như Somee
+    },
+    connectionTimeout: 30000, // 30 giây
+    requestTimeout: 30000
 };
-
 async function connectDB() {
     try {
         let pool = await sql.connect(config);
         console.log('Kết nối với SQL Server thành công');
         return pool;
     } catch (err) {
-        console.error('Lỗi kết nối', err);
-    }
-}
-
-module.exports = { sql, connectDB };
+        console.error('Lỗi kết nối',err);
+    }}
+module.exports = {sql,connectDB};
