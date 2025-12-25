@@ -9,7 +9,7 @@ const mailer = nodemailer.createTransport({
   secure: false, // True nếu dùng port 465, false nếu dùng port 587
   auth: {
     user: 'thanhmanhdangfa@gmail.com',
-    pas:'lnzv feij xesl xecx' // KHÔNG phải mật khẩu đăng nhập Gmail
+    pass:'lnzv feij xesl xecx' // KHÔNG phải mật khẩu đăng nhập Gmail
   },
   // Thêm dòng này nếu chạy localhost bị lỗi chứng chỉ
   tls: {
