@@ -3,7 +3,6 @@ const nodemailer = require("nodemailer");
 const otpStore = require("../service/otpStore");
 
 const mailer = nodemailer.createTransport({
-  const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
   port: 587, // Hoặc 465
@@ -16,7 +15,6 @@ const mailer = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   }
-});
 });
 class taiKhoanController {
   async index(req, res) {
