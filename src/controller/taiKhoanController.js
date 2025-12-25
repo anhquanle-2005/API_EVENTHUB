@@ -3,12 +3,20 @@ const nodemailer = require("nodemailer");
 const otpStore = require("../service/otpStore");
 
 const mailer = nodemailer.createTransport({
-  service: "gmail",
+  const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587, // Hoặc 465
+  secure: false, // True nếu dùng port 465, false nếu dùng port 587
   auth: {
-    // user: 'ntmanh@ntmanh.io.vn',
-    user: "thanhmanhdangfa@gmail.com",
-    pass: "qsts olie vhpg mwtb",
+    user: 'thanhmanhdangfa@gmail.com',
+    pas:'lnzv feij xesl xecx' // KHÔNG phải mật khẩu đăng nhập Gmail
   },
+  // Thêm dòng này nếu chạy localhost bị lỗi chứng chỉ
+  tls: {
+    rejectUnauthorized: false
+  }
+});
 });
 class taiKhoanController {
   async index(req, res) {
