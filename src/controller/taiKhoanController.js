@@ -5,8 +5,8 @@ const otpStore = require("../service/otpStore");
 const mailer = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
-  port: 587, // Hoặc 465
-  secure: false, // True nếu dùng port 465, false nếu dùng port 587
+  port: 465, // Hoặc 465t 
+  secure: true, // True nếu dùng port 465, false nếu dùng port 587
   auth: {
     user: 'thanhmanhdangfa@gmail.com',
     pass:'lnzv feij xesl xecx' // KHÔNG phải mật khẩu đăng nhập Gmail
